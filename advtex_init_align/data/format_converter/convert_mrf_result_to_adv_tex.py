@@ -26,7 +26,8 @@ import PIL
 PIL.Image.MAX_IMAGE_PIXELS = None
 
 import torch
-
+import sys
+sys.path.append('/workspace/advtex_init_align')
 from advtex_init_align.utils.stream_utils import StreamReader
 from advtex_init_align.utils.io_utils import load_mtl_imgs, load_mtl_imgs_vectorize, read_obj
 from advtex_init_align.utils.renderer_utils import (

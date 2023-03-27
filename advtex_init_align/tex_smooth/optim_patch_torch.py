@@ -21,7 +21,8 @@ from PIL import Image
 
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = None
-
+import sys
+sys.path.append('/workspace/advtex_init_align')
 import torch
 import torchvision
 import torch.optim as optim

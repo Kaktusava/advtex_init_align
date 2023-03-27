@@ -78,7 +78,7 @@ def convert_to_apple_stream(scene_id, data_dir, mesh_f, out_dir):
             cv2.imread(
                 os.path.join(data_dir, f"depth/{i:06d}.png"), cv2.IMREAD_ANYDEPTH
             ).astype(np.float32)
-            / 1000.0
+            / 1000.
         )
         image = np.array(Image.open(os.path.join(data_dir, f"color/{i:06d}.jpg")))
 

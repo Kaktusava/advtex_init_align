@@ -6,6 +6,8 @@ import struct
 import argparse
 import numpy as np
 from PIL import Image
+import sys
+sys.path.append('/workspace/advtex_init_align')
 
 from advtex_init_align.utils.stream_utils import StreamReader
 

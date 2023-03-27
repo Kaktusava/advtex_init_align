@@ -13,7 +13,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifdef __APPLE__
 #include <Accelerate/Accelerate.h>
 #else
-#include <cblas.h>
+extern "C"
+{
+   #include <cblas.h>
+}
 #endif
 
 namespace bff {

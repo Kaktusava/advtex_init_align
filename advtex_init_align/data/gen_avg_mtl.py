@@ -9,7 +9,8 @@ import numpy as np
 from PIL import Image
 
 import torch
-
+import sys
+sys.path.append('/workspace/advtex_init_align')
 from advtex_init_align.utils.stream_utils import StreamReader
 from advtex_init_align.utils.io_utils import load_mtl_imgs, load_mtl_imgs_vectorize
 from advtex_init_align.utils.renderer_utils import (

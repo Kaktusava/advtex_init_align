@@ -2,10 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+dataset/
+experiments/
+third_parties/
 .DS_Store
 .vscode
-
+advtex_init_align/tex_init/
 # C extensions
 *.so
 
