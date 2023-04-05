@@ -187,7 +187,7 @@ def gen_avg_mtl(
     )
     print(f"\n... done reading obj in {time.time() - t1} seconds.\n")
 
-    # mtl_f = os.path.join(obj_dir, MTL_FILENAME)
+    # mtl_f = os.path.join(obj_dir, MTL_FILENAME)   
     raw_mtl_imgs, raw_mtl_fnames = load_mtl_imgs_vectorize(mtl_f, return_fname=True)
     raw_mtl_imgs = torch.ByteTensor(raw_mtl_imgs).to(device)
     print(f"\nDone reading mtl imgs with {raw_mtl_imgs.shape}.\n")

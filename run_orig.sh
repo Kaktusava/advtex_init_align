@@ -97,8 +97,7 @@ do
         --stream_dir_list ${DATA_DIR}/uofi/${SCENE_ID} \
         --save_dir ${EXP_DIR}/${SCENE_ID} \
         --sample_freq_list ${sample_freq} \
-        --sample_freq_for_train 0 \
-        --stream_type scannet
+        --sample_freq_for_train 0
 
         printf "\n... done generating new stream file\n"
 
@@ -114,7 +113,7 @@ do
         --n_iter_mp ${N_ITERS_MP} \
         --n_workers 10 --mtl_width ${MTL_RES} --mtl_height ${MTL_RES} \
         --n_extrude_pixels 0 \
-        --iter_subdiv ${N_SUBDIV} --stream_type 2 \
+        --iter_subdiv ${N_SUBDIV} --stream_type 1 \
         --unary_potential_dummy ${DUMMY_PENALTY} \
         --remesh 0 \
         --bin_pack_type 3 --n_areas_per_plate_bin_pack 500 \
@@ -138,8 +137,7 @@ do
         --atlas_size ${MTL_ATLAS_SIZE} \
         --debug_vis 1 \
         --fuse 1 \
-        --directly_fuse 0 \
-        --stream_type scannet 
+        --directly_fuse 0
 
         printf "\n... done generating L2 averaged texture\n"
 
@@ -153,9 +151,7 @@ do
         --save_dir ${EXP_DIR}/${SCENE_ID}/${DIR_PREFIX}_1_${sample_freq}/optim/${MRF_NAME}_${MTL_RES}_${MTL_RES}_atlas_${MTL_ATLAS_SIZE}/fused \
         --atlas_size ${MTL_ATLAS_SIZE} \
         --already_single_mtl 0 \
-        --stream_type scannet \
-        --for_train 1 
-        
+        --for_train 1
 
         # Run AdvTex
         python ${REPO_DIR}/advtex_init_align/tex_smooth/optim_patch_torch.py \
@@ -179,7 +175,6 @@ do
         --atlas_size ${MTL_ATLAS_SIZE} \
         --already_single_mtl 1 \
         --for_train 0 \
-        --stream_type scannet \
         --pure_save_gt_info 1 \
         --prepare_for_test_only 0 \
         --train_idx_to_raw_idx_map_f ${EXP_DIR}/${SCENE_ID}/${DIR_PREFIX}_1_${sample_freq}/train_idx_to_raw_idx_map.json
@@ -191,7 +186,6 @@ do
         --save_dir ${EXP_DIR}/${SCENE_ID}/${DIR_PREFIX}_1_${sample_freq}/optim/${MRF_NAME}_${MTL_RES}_${MTL_RES}_atlas_${MTL_ATLAS_SIZE}/seed_${SEED}-scratch_0-offset_1_n_patch_h_${N_PATCHES_H}_w_${N_PATCHES_W} \
         --atlas_size ${MTL_ATLAS_SIZE} \
         --already_single_mtl 1 \
-        --stream_type scannet \
         --for_train 0
 
         # Compute metrics

@@ -10,11 +10,7 @@ import numpy as np
 import open3d as o3d
 from tqdm import tqdm
 from PIL import Image
-import imageio
-import sys
-sys.path.append('/workspace/gim_3d/')
-from utils.colmap_utils import Colmap
-from utils.depth_utils import *
+
 
 def resize_depth(depth, rgb):
     new_depth = np.array(
@@ -23,25 +19,6 @@ def resize_depth(depth, rgb):
         )
     )
     return new_depth
-
-def resize(rgb, depth, intrinsic, scale):
-    if scale != 1:
-        new_depth = np.array(
-                Image.fromarray(depth, mode="F").resize(
-                    (int(depth.shape[1]*scale), int(depth.shape[0]*scale)), resample=Image.Resampling.NEAREST
-                )
-            )
-        new_rgb = np.array(
-                Image.fromarray(rgb).resize(
-                    (int(rgb.shape[1]*scale), int(rgb.shape[0]*scale)), resample=Image.Resampling.BICUBIC
-                )
-            )
-        new_intrinsic = intrinsic.copy()
-        new_intrinsic = new_intrinsic[:2]*scale
-        return new_rgb, new_depth, new_intrinsic
-    else:
-        return rgb, depth, intrinsic
-
 
 
 def convert_to_apple_stream(scene_id, data_dir, mesh_f, out_dir):
@@ -57,12 +34,12 @@ def convert_to_apple_stream(scene_id, data_dir, mesh_f, out_dir):
     print("\nmesh: ", vert.shape, face_id.shape, "\n")
     print("... done.")
 
-    # for i in tqdm(range(face_id.shape[0])):
-    #     assert (
-    #         (face_id[i, 0] != face_id[i, 1])
-    #         and (face_id[i, 0] != face_id[i, 2])
-    #         and (face_id[i, 1] != face_id[i, 2])
-    #     ), f"{face_id[i, :]}"
+    for i in tqdm(range(face_id.shape[0])):
+        assert (
+            (face_id[i, 0] != face_id[i, 1])
+            and (face_id[i, 0] != face_id[i, 2])
+            and (face_id[i, 1] != face_id[i, 2])
+        ), f"{face_id[i, :]}"
 
     with open(os.path.join(out_dir, "Vertices.0"), "wb") as f:
         f.write(vert.astype(np.float32).tobytes())
@@ -71,56 +48,56 @@ def convert_to_apple_stream(scene_id, data_dir, mesh_f, out_dir):
 
     print("start reading rgb-d ...")
 
-    depth_image_path = os.path.join(data_dir, "depth_packed")
-    color_image_path = os.path.join(data_dir, "images")
+    depth_image_paths = list(glob.glob(os.path.join(data_dir, "depth/*.png")))
+    color_image_paths = list(glob.glob(os.path.join(data_dir, "color/*.jpg")))
+    cam_pose_paths = list(glob.glob(os.path.join(data_dir, "pose/*.txt")))
+    assert len(depth_image_paths) == len(
+        color_image_paths
+    ), f"{len(depth_image_paths)}, {len(color_image_paths)}"
+    assert len(depth_image_paths) == len(
+        cam_pose_paths
+    ), f"{len(depth_image_paths)}, {len(cam_pose_paths)}"
+
+    n_views = len(depth_image_paths)
 
     print("... done.")
 
     # NOTE: since we will resize depth to the same resolution as RGB,
     # we direclty use RGB's intrinsics.
-    # K = np.loadtxt(os.path.join(data_dir, "intrinsic/intrinsic_color.txt"))
+    K = np.loadtxt(os.path.join(data_dir, "intrinsic/intrinsic_color.txt"))
 
     print("start writing stream file ...")
     cnt = 0
     newFile = open(os.path.join(out_dir, "Recv.stream"), "wb")
 
     # NOTE: we need to keep the order of image indices
-    colmap = Colmap()
-    images_txt = colmap.read_images_text(os.path.join(data_dir,'images.txt'))
-    cameras_txt = colmap.read_cameras_text(os.path.join(data_dir,'cameras.txt'))
-    intrinsics = colmap.get_intrinsics(cameras_txt)
-    extrinsics = colmap.read_keylog(os.path.join(data_dir,'key.log'))
-    count = 0
-    for img_id, img in tqdm(dict(sorted(images_txt.items())).items()):
-        # count+=1
-        # if count > 3:
-        #     break
-        img_name = images_txt[img_id].name[:-4]+'.JPG'
-        depth_name = images_txt[img_id].name[:-4]+'.png'
-        depth = unpack_float32(np.asarray((imageio.v2.imread(os.path.join(depth_image_path, depth_name)))))
-        depth[np.isnan(depth)] = 0
-        depth[np.isinf(depth)] = 0
-        # depth = depth / 1000.
-        image = imageio.v2.imread(os.path.join(color_image_path, img_name))
+    for i in tqdm(range(n_views)):
 
-        viewMatrix = np.linalg.inv(extrinsics[img_id])
-        K = intrinsics[img.camera_id]
+        # change from millimeter to meter
+        raw_depth_map = (
+            cv2.imread(
+                os.path.join(data_dir, f"depth/{i:06d}.png"), cv2.IMREAD_ANYDEPTH
+            ).astype(np.float32)
+            / 1000.
+        )
+        image = np.array(Image.open(os.path.join(data_dir, f"color/{i:06d}.jpg")))
 
-        resized_image, resized_depth, K = resize(image, depth, K, 0.4)
+        depth_map = resize_depth(raw_depth_map, image)
+
         # image[mask == 0] = 255
 
         # when writing to file, we transpose data to mimic Apple's Fortran order
         cnt = cnt + 1
-        newFile.write(struct.pack("3I", *resized_image.shape))
-        newFile.write(resized_image.transpose((2, 1, 0)).astype(np.uint8).tobytes())
-        newFile.write(struct.pack("2I", *resized_depth.shape))
-        newFile.write(resized_depth.transpose((1, 0)).astype(np.float32).tobytes())
+        newFile.write(struct.pack("3I", *image.shape))
+        newFile.write(image.transpose((2, 1, 0)).astype(np.uint8).tobytes())
+        newFile.write(struct.pack("2I", *depth_map.shape))
+        newFile.write(depth_map.transpose((1, 0)).astype(np.float32).tobytes())
 
         # NOTE: start processing camera poses
         # This is camera-to-world: https://github.com/ScanNet/ScanNet/tree/488e5ba/SensReader/python
-        
-        # cam2world_mat = np.loadtxt(os.path.join(data_dir, f"pose/{i:06d}.txt"))
-        
+        cam2world_mat = np.loadtxt(os.path.join(data_dir, f"pose/{i:06d}.txt"))
+        viewMatrix = np.linalg.inv(cam2world_mat)
+
         # NOTE: start processing projection matrix
         # originally, projection matrix maps to NDC with range [0, 1]
         # to align with our CPP implementation, we modify it to make points mapped to NDC with range [-1, 1].
@@ -146,7 +123,7 @@ def convert_to_apple_stream(scene_id, data_dir, mesh_f, out_dir):
         # M1 * p1 = (1, 1, 1)^T
         # ==> h1 = (1 - u) / fu, w0 = (1 - v) / fv
         # ==> M2 * p1 = (1, 1, 1)
-        img_h, img_w, _ = resized_image.shape
+        img_h, img_w, _ = image.shape
         prjMatrix = np.eye(4)
         prjMatrix[0, 0] = 2 * K[0, 0] / img_w
         prjMatrix[1, 1] = 2 * K[1, 1] / img_h

@@ -41,9 +41,11 @@ def main(
     os.makedirs(mat_dir, exist_ok=True)
 
     n_views = len(gt_rgbs)
+    print(n_views)
 
     for i in tqdm.tqdm(range(n_views)):
-
+        if i > 10:
+            break
         fname = f"{i:05d}"
 
         cur_rgb = np.fliplr(gt_rgbs[i])
@@ -57,7 +59,7 @@ def main(
         cur_view_mat = stream_reader.view_matrices[i, ...]
         cur_proj_mat = stream_reader.proj_matrices[i, ...]
 
-        cur_K, cur_w2c = cam_mat_to_ex_intr_mat("apple", cur_view_mat, cur_proj_mat, cur_h, cur_w)
+        cur_K, cur_w2c = cam_mat_to_ex_intr_mat(stream_type, cur_view_mat, cur_proj_mat, cur_h, cur_w)
         np.savez(mat_dir / f"{fname}.npz", K=cur_K, w2c=cur_w2c)
 
 
@@ -111,7 +113,7 @@ if __name__ == "__main__":
         "--save_dir", type=str, required=True, help="save_directory.",
     )
     parser.add_argument(
-        "--stream_type", type=str, default="apple", choices=["apple"],
+        "--stream_type", type=str, default="apple", choices=["apple", "scannet"],
     )
 
     args = parser.parse_args()

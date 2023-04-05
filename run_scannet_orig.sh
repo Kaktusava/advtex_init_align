@@ -31,9 +31,9 @@ N_ITERS_MP=0
 
 N_SUBDIV=0
 
-N_MESH_SPLITS=8
+N_MESH_SPLITS=30
 
-MTL_RES=1024
+MTL_RES=2048
 
 if [ "${UNARY}" == "1" ]; then
     MRF_NAME="unary"  
@@ -71,23 +71,23 @@ do
         # read data from .sens file
         printf "\nstart reading raw data from .sens file ...\n"
 
-        # python ${REPO_DIR}/advtex_init_align/data/scannet/reader.py \
-        # --filename ${DATA_DIR}/scannet_raw/${SCENE_ID}/${SCENE_ID}.sens \
-        # --output_path ${DATA_DIR}/scannet/${SCENE_ID} \
-        # --export_depth_images \
-        # --export_color_images \
-        # --export_poses \
-        # --export_intrinsics
+        python ${REPO_DIR}/advtex_init_align/data/scannet/reader.py \
+        --filename ${DATA_DIR}/scannet_raw/${SCENE_ID}/${SCENE_ID}.sens \
+        --output_path ${DATA_DIR}/scannet/${SCENE_ID} \
+        --export_depth_images \
+        --export_color_images \
+        --export_poses \
+        --export_intrinsics
 
         printf "\n... done reading raw data.\n"
 
         # convert raw data to Apple's stream file
         printf "\nstart converting to Apple's stream file ...\n"
 
-        # python ${REPO_DIR}/advtex_init_align/data/format_converter/convert_scannet_to_apple_stream.py \
-        # --data_dir ${DATA_DIR}/scannet/${SCENE_ID} \
-        # --mesh_f ${DATA_DIR}/scannet/${SCENE_ID}/${SCENE_ID}_vh_clean_2.ply \
-        # --out_dir ${EXP_DIR}/${SCENE_ID}/full
+        python ${REPO_DIR}/advtex_init_align/data/format_converter/convert_scannet_to_apple_stream.py \
+        --data_dir ${DATA_DIR}/scannet/${SCENE_ID} \
+        --mesh_f ${DATA_DIR}/scannet/${SCENE_ID}/${SCENE_ID}_vh_clean_2.ply \
+        --out_dir ${EXP_DIR}/${SCENE_ID}/full
 
         printf "\n... done converting to stream file.\n"
 
